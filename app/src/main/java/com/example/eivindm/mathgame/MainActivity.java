@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
-                Intent launchGameOver = new Intent(getApplication(), IndexScreen.class);
+                Intent launchGameOver = new Intent(getApplication(), GameOver.class);
                launchGameOver.putExtra("Score", score);
                 launchGameOver.putExtra("UserContract", user);
                 startActivity(launchGameOver);
@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        new CountDownTimer(10000, 1000) {
+        new CountDownTimer(30000, 1000) {
 
 
             public void onTick(long millisUntilFinished) {

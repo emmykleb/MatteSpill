@@ -23,14 +23,19 @@
         </activity>
         <activity android:name=".IndexScreen"
             android:launchMode="singleTop"
+            android:label="Start Game"
+
           />
         <activity android:name=".MainActivity"
+
             android:launchMode="singleTop"/>
 
         <activity android:name=".userListActivity"
+            android:label="Top Score"
             android:launchMode="singleTop"
             />
         <activity android:name=".GameOver"
+            android:label="Game Over"
             android:launchMode="singleTop"
            />
 

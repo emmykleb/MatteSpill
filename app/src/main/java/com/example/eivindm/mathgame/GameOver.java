@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.eivindm.mathgame.SqlDatabase.ScoreContract;
 import com.example.eivindm.mathgame.SqlDatabase.UserContract;
@@ -47,13 +48,23 @@ public class GameOver extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                if (user != null)
+                {
+                    Intent index = new Intent(getApplication(), IndexScreen.class);
+                    index.putExtra("UserContract",  user);
+                    startActivity(index);
+                }
+                else{
+                    Toast.makeText(getApplicationContext(),"User not recognised",10).show();
+                }
 
 
+/*
                 Intent launchIndex = new Intent(getApplication(),IndexScreen.class);
                 launchIndex.getSerializableExtra("UserContract");
                 launchIndex.putExtra("UserContract", user);
                 startActivity(launchIndex);
-
+*/
             }
     });
 
