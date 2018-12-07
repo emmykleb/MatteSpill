@@ -21,11 +21,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".IndexScreen" />
-        <activity android:name=".MainActivity" />
-        <activity android:name=".AdditionActivity" />
-        <activity android:name=".userListActivity" />
-        <activity android:name=".GameOver" />
+        <activity android:name=".IndexScreen"
+            android:launchMode="singleTop"
+          />
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTop"/>
+
+        <activity android:name=".userListActivity"
+            android:launchMode="singleTop"
+            />
+        <activity android:name=".GameOver"
+            android:launchMode="singleTop"
+           />
 
     </application>
 

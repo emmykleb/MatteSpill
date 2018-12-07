@@ -31,5 +31,12 @@
             android:layout_height="wrap_content"
             android:text="TOP SCORES" />
 
+        <TextView
+            android:id="@+id/loggedInView"
+            android:layout_width="match_parent"
+            android:layout_height="68dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:textSize="18sp" />
+
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

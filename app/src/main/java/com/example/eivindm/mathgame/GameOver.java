@@ -20,26 +20,38 @@ public class GameOver extends AppCompatActivity {
 
 
 
+    UserDbHelper userDb;
+    private UserContract user;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_over);
-       UserDbHelper userDb ;
+
+        TextView scoreview = findViewById(R.id.scoreView);
+
+        userDb = new UserDbHelper(getApplicationContext());
+        user = (UserContract) getIntent().getSerializableExtra("UserContract");
+        Intent intent = getIntent();
+
+        int score = intent.getIntExtra("Score",0);
 
 
-
-
-
-
+        scoreview.setText("Score: " + score);
 
 
         Button home = (Button) findViewById(R.id.homeBtn);
         home.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent launchIndex = new Intent(getApplication(),IndexScreen.class);
 
+
+
+                Intent launchIndex = new Intent(getApplication(),IndexScreen.class);
+                launchIndex.getSerializableExtra("UserContract");
+                launchIndex.putExtra("UserContract", user);
                 startActivity(launchIndex);
 
             }
@@ -47,4 +59,21 @@ public class GameOver extends AppCompatActivity {
 
 
 
-}}
+}
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
+        outState.putSerializable("UserContract", user);
+        super.onSaveInstanceState(outState);
+
+    }
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        savedInstanceState.getSerializable("UserContract");
+
+
+    }
+}

@@ -8,7 +8,7 @@ import android.database.*;
 import java.io.Serializable;
 
 
-public class UserContract  implements Serializable {
+public class UserContract implements Serializable {
     // To prevent someone from accidentally instantiating the contract class,
     // make the constructor private.
     private UserContract() {}

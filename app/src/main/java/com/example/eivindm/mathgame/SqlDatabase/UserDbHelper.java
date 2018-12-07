@@ -13,7 +13,7 @@ import static com.example.eivindm.mathgame.SqlDatabase.UserContract.UserEntry.CO
 
 public class UserDbHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 11;
     public static final String DATABASE_NAME = "User.db";
     //String YOUR_QUERY = "SELECT * FROM TABLE_NAME";
 
@@ -31,9 +31,9 @@ public class UserDbHelper extends SQLiteOpenHelper {
                     ScoreContract.ScoreEntry._ID + " INTEGER PRIMARY KEY," +
                     ScoreContract.ScoreEntry.COLUMN_USERID + " TEXT," +
                     ScoreContract.ScoreEntry.COLUMN_SCORE + " TEXT," +
+                    ScoreContract.ScoreEntry.COLUMN_TIME_STAMP + " TIMESTAMP," +
                     //ScoreContract.ScoreEntry.COLUMN_DURATION + " TEXT," +
                     "FOREIGN KEY (" + ScoreContract.ScoreEntry.COLUMN_USERID + ") REFERENCES " + UserContract.UserEntry.TABLE_NAME + " (" + UserContract.UserEntry._ID + "))";
-
 
 
     private static final String SQL_DELETE_ENTRIES_USER =
@@ -64,32 +64,46 @@ public class UserDbHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public boolean addNewUser(String name, String password, String firstName, String lastName) {// Gets the data repository in write mode
-        SQLiteDatabase db = getWritableDatabase();
-
-        // Create a new map of values, where column names are the keys
-        ContentValues values = new ContentValues();
-        values.put(UserContract.UserEntry.COLUMN_NAME, name.toString());
-        values.put(UserContract.UserEntry.COLUMN_PASSWORD, password.toString());
-
-        values.put(UserContract.UserEntry.COLUMN_FIRSTNAME, firstName.toString());
-        values.put(UserContract.UserEntry.COLUMN_LASTNAME, lastName.toString());
-        // Insert the new row, returning the primary key value of the new row
-        long newRowId = db.insert(UserContract.UserEntry.TABLE_NAME, null, values);
-        if (newRowId > 0)
-            return true;
-        else
-            return false;
-    }
-    public boolean addNewScore(UserContract user, int score) {// Gets the data repository in write mode
-
+    public boolean addNewUser(String name, String password, String firstName, String lastName) {// Gets the data repository in write mod
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = getWritableDatabase();
+            db = getWritableDatabase();
+
+
+            // Create a new map of values, where column names are the keys
+            ContentValues values = new ContentValues();
+            values.put(UserContract.UserEntry.COLUMN_NAME, name.toString());
+            values.put(UserContract.UserEntry.COLUMN_PASSWORD, password.toString());
+
+            values.put(UserContract.UserEntry.COLUMN_FIRSTNAME, firstName.toString());
+            values.put(UserContract.UserEntry.COLUMN_LASTNAME, lastName.toString());
+            // Insert the new row, returning the primary key value of the new row
+            long newRowId = db.insert(UserContract.UserEntry.TABLE_NAME, null, values);
+            if (newRowId > 0)
+                return true;
+            else
+                return false;
+        } catch (Exception ex) {
+            return false;
+        } finally {
+            db.close();
+        }
+
+    }
+
+    public boolean addNewScore(UserContract user, int score, String timestamp) {// Gets the data repository in write mode
+
+        SQLiteDatabase db = null;
+        try {
+            db = getWritableDatabase();
 
             // Create a new map of values, where column names are the keys
             ContentValues values = new ContentValues();
             values.put(ScoreContract.ScoreEntry.COLUMN_USERID, user.id);
             values.put(ScoreContract.ScoreEntry.COLUMN_SCORE, score);
+            values.put(ScoreContract.ScoreEntry.COLUMN_TIME_STAMP, timestamp);
+
+            //values.put(ScoreContract.ScoreEntry.COLUMN_TIME_STAMP, "time('now')");
 
             // Insert the new row, returning the primary key value of the new row
             long newRowId = db.insert(ScoreContract.ScoreEntry.TABLE_NAME, null, values);
@@ -97,41 +111,44 @@ public class UserDbHelper extends SQLiteOpenHelper {
                 return true;
             else
                 return false;
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             return false;
+        } finally {
+            db.close();
         }
+
     }
 
-    public List<ScoreContract> getAllScores() {
+    /*
+        public List<ScoreContract> getAllScores() {
 
-        try {
-            SQLiteDatabase db = getReadableDatabase();
-            String q = "SELECT * FROM score";
-            Cursor cursor = db.rawQuery(q, null);
+            try {
+                SQLiteDatabase db = getReadableDatabase();
+                String q = "SELECT * FROM score";
+                Cursor cursor = db.rawQuery(q, null);
 
-            ArrayList<ScoreContract> scores = new ArrayList<ScoreContract>();
+                ArrayList<ScoreContract> scores = new ArrayList<ScoreContract>();
 
-            while (cursor.moveToNext()) {
-                long id = cursor.getLong(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry._ID));
-                int user = cursor.getInt(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_USERID));
-                int scoreresult = cursor.getInt(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_SCORE));
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry._ID));
+                    int user = cursor.getInt(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_USERID));
+                    int scoreresult = cursor.getInt(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_SCORE));
+                    //String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_TIME_STAMP));
+                    ScoreContract score = new ScoreContract(id, user, scoreresult);
+                    scores.add(score);
+                }
 
-                ScoreContract score = new ScoreContract(id, user, scoreresult);
-                scores.add(score);
+                return scores;
             }
-
-            return scores;
+            catch(Exception ex){
+                return null;
+            }
         }
-        catch(Exception ex){
-            return null;
-        }
-    }
-
-    public UserContract getUserById(int userId)
-    {
-        try{
-            SQLiteDatabase db = getReadableDatabase();
+    */
+    public UserContract getUserById(int userId) {
+        SQLiteDatabase db = null;
+        try {
+            db = getReadableDatabase();
 
             String[] projection = {
                     UserContract.UserEntry._ID,
@@ -159,104 +176,126 @@ public class UserDbHelper extends SQLiteOpenHelper {
                 String fn = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_FIRSTNAME));
                 String ln = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_LASTNAME));
 
-                return new UserContract(id, un, "",fn,ln);
+                cursor.close();
+                return new UserContract(id, un, "", fn, ln);
 
             }
             return null;
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             return null;
+        } finally {
+            db.close();
         }
-    }
-    public List<ScoreContract> getTopScores() {
 
+    }
+
+    public List<ScoreContract> getTopScores() {
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            String q = "SELECT score.* FROM score  ORDER BY score.score DESC";
+            db = getReadableDatabase();
+
+            String q = "SELECT score.* FROM score ORDER BY score DESC";
             Cursor cursor = db.rawQuery(q, null);
 
-            ArrayList<ScoreContract> scores = new ArrayList<ScoreContract>();
+            List<ScoreContract> scores = new ArrayList<ScoreContract>();
 
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry._ID));
                 int userid = cursor.getInt(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_USERID));
                 int score = cursor.getInt(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_SCORE));
-
-                ScoreContract sc = new ScoreContract (id, userid, score);
+                String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_TIME_STAMP));
+                ScoreContract sc = new ScoreContract(id, userid, score, timestamp);
 
                 UserContract user = getUserById(userid);
                 sc.user = user;
 
                 scores.add(sc);
-            }
 
+            }
+            cursor.close();
+
+            Collections.sort(scores, new ScoreComparer());
             return scores;
-        }
-        catch(Exception ex){
+
+        } catch (Exception ex) {
             return null;
+        } finally {
+            db.close();
         }
+
     }
 
-    public ArrayList<UserContract> getUserList(){
+   /*public List<UserContract> getUserList() {
         SQLiteDatabase thisdb = getReadableDatabase();
 
         String q = "SELECT * FROM user";
 
-        Cursor cursor = thisdb.rawQuery(q,null);
+        Cursor cursor = thisdb.rawQuery(q, null);
 
-        ArrayList<UserContract> users = new ArrayList<UserContract>();
+        List<UserContract> users = new ArrayList<UserContract>();
+
 
         while (cursor.moveToNext()) {
             long id = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry._ID));
+            int userid = cursor.getInt(cursor.getColumnIndexOrThrow(ScoreContract.ScoreEntry.COLUMN_USERID));
             String pswd = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_PASSWORD));
             String username = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_NAME));
 
-            UserContract new_user = new UserContract(id, username,pswd,"","");
-            users.add(new_user);
+            UserContract new_user = new UserContract(id, username, pswd, "", "");
 
+
+             users.add(new_user);
         }
         cursor.close();
         return users;
     }
+*/
 
     public UserContract getUser(String username, String password) {// Gets the data repository in write mode
-        SQLiteDatabase db = getReadableDatabase();
+        SQLiteDatabase db = null;
+        try {
+            db = getReadableDatabase();
 
-        String[] projection = {
-                UserContract.UserEntry._ID,
-                COLUMN_NAME,
-                UserContract.UserEntry.COLUMN_PASSWORD
-        };
+            String[] projection = {
+                    UserContract.UserEntry._ID,
+                    COLUMN_NAME,
+                    UserContract.UserEntry.COLUMN_PASSWORD
+            };
 
 // Filter results WHERE "title" = 'My Title'
-        String selection = COLUMN_NAME + " = ?";
-        String[] selectionArgs = {username};
+            String selection = COLUMN_NAME + " = ?";
+            String[] selectionArgs = {username};
 
 // How you want the results sorted in the resulting Cursor
-        //String sortOrder =  FeedEntry.COLUMN_NAME_SUBTITLE + " DESC";
+            //String sortOrder =  FeedEntry.COLUMN_NAME_SUBTITLE + " DESC";
 
-        Cursor cursor = db.query(
-                UserContract.UserEntry.TABLE_NAME,   // The table to query
-                projection,             // The array of columns to return (pass null to get all)
-                selection,              // The columns for the WHERE clause
-                selectionArgs,          // The values for the WHERE clause
-                null,                   // don't group the rows
-                null,                   // don't filter by row groups
-                null               // The sort order
-        );
-        while (cursor.moveToNext()) {
-            long id = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry._ID));
-            String pswd = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_PASSWORD));
-
-            if (pswd.equals(password))
-            {
-                return new UserContract(id, username, password,"","");
+            Cursor cursor = db.query(
+                    UserContract.UserEntry.TABLE_NAME,   // The table to query
+                    projection,             // The array of columns to return (pass null to get all)
+                    selection,              // The columns for the WHERE clause
+                    selectionArgs,          // The values for the WHERE clause
+                    null,                   // don't group the rows
+                    null,                   // don't filter by row groups
+                    null               // The sort order
+            );
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow(UserContract.UserEntry._ID));
+                String pswd = cursor.getString(cursor.getColumnIndexOrThrow(UserContract.UserEntry.COLUMN_PASSWORD));
+                cursor.close();
+                if (pswd.equals(password)) {
+                    return new UserContract(id, username, password, "", "");
+                }
+                return null;
             }
             return null;
+        } catch (Exception ex) {
+            return null;
+
+        } finally {
+            db.close();
         }
-        return null;
+
+
     }
-
-
 
 }

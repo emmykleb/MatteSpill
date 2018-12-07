@@ -12,12 +12,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import com.example.eivindm.mathgame.SqlDatabase.*;
 
 public class IndexScreen extends AppCompatActivity {
 
-    private UserContract user;
 
+    UserContract user;
+    // final UserDbHelper userDb = new UserDbHelper(getApplicationContext());
     //UserDbHelper myDB;
     private EditText userNameInput;
     private EditText passwordInput;
@@ -25,18 +28,21 @@ public class IndexScreen extends AppCompatActivity {
     private StringBuilder builder = new StringBuilder();
     private TextView userTxtView;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.index_screen);
 
-        user = (UserContract) getIntent().getSerializableExtra("UserContract");
+
         final UserDbHelper userDb = new UserDbHelper(getApplicationContext());
-        //userDb.write("fsd", "fdsfs");
-        //UserContract user = userDb.getUser("eivind", "1234");
 
+        user = (UserContract) getIntent().getSerializableExtra("UserContract");
+        // String loggedInUser = userDb.getUserById(0).firstName.toString();
+        if (savedInstanceState != null && user == null) {
+            user = (UserContract) savedInstanceState.getSerializable("UserContract");
+        }
 
-        //userTxtView = findViewById(R.id.userTxtView);
 
         Button startBtn = (Button) findViewById(R.id.startGameBtn);
 
@@ -45,13 +51,12 @@ public class IndexScreen extends AppCompatActivity {
             public void onClick(View view) {
 
                 Intent launchGame = new Intent(getApplication(), MainActivity.class);
-                launchGame.putExtra("UserContract",  user);
+                launchGame.putExtra("UserContract", user);
                 startActivity(launchGame);
 
 
             }
         });
-
 
 
         Button userLiBtn = (Button) findViewById(R.id.userListBtn);
@@ -61,21 +66,41 @@ public class IndexScreen extends AppCompatActivity {
             public void onClick(View view) {
 
 
+                Intent viewUsers = new Intent(getApplication(), userListActivity.class);
+                viewUsers.putExtra("UserContract", user);
+                startActivity(viewUsers);
 
-                    Intent viewUsers = new Intent(getApplication(), userListActivity.class);
-                    startActivity(viewUsers);
-
-                }
+            }
 
         });
+
+
+
+
+
+
+        }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable("UserContract", user);
+        super.onSaveInstanceState(outState);
 
 
     }
 
 
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        savedInstanceState.getSerializable("UserContract");
+
+
+    }
+
 }
-
-
 
 
 

@@ -27,13 +27,25 @@ public class LoginActivity extends AppCompatActivity {
     private StringBuilder builder = new StringBuilder();
     private TextView userTxtView;
 
+    UserContract user;
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        savedInstanceState.getSerializable("UserContract");
+
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_activity);
 
-        final UserDbHelper userDb = new UserDbHelper(getApplicationContext());
 
+
+        final UserDbHelper userDb = new UserDbHelper(getApplicationContext());
 
         txtUserName = findViewById(R.id.txtUserName);
         txtPassword = findViewById(R.id.txtPassword);
@@ -50,9 +62,10 @@ public class LoginActivity extends AppCompatActivity {
                 String username = txtUserName.getText().toString();
                 String password = txtPassword.getText().toString();
 
-               // List<ScoreContract> scores =  userDb.getTopScores();
+                user = userDb.getUser(username,password);
 
-                UserContract user = userDb.getUser(username,password);
+                // List<ScoreContract> scores =  userDb.getTopScores();
+
 
                 if (user != null)
                 {
@@ -95,6 +108,15 @@ public class LoginActivity extends AppCompatActivity {
 
 
     }
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
+        outState.putSerializable("UserContract", user);
+        super.onSaveInstanceState(outState);
+
+    }
+
+
+
 
 
 }

@@ -3,6 +3,7 @@ package com.example.eivindm.mathgame;
 import android.arch.persistence.room.*;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -13,7 +14,10 @@ import android.widget.Toast;
 
 import com.example.eivindm.mathgame.SqlDatabase.*;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
@@ -21,12 +25,18 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String DATABASE_NAME = "my_db";
 
+
+
+   //boolean timeout = false;
+
+
     int number1;
     int number2;
-    private int questionNum;
+    private int questionNum = 1 ;
     private int score;
 
-    UserContract user;
+    private UserContract user;
+
     enum Operation
     {
         PLUS('+'),
@@ -43,8 +53,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     Operation op;
-
-
 
     private void GenerateRandomQuestion()
     {
@@ -66,6 +74,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void SetOpertion(){
+
+        Random operatorChoice = new Random();
+
+        int opvalue  = operatorChoice.nextInt(3);
+
+        switch(opvalue){
+            case 0: op = Operation.PLUS;
+            break;
+            case 1: op = Operation.MINUS;
+                break;
+            case 2: op = Operation.MULT;
+                break;
+
+        }
+        /*
         if (questionNum <= 3){
             op = Operation.PLUS;
 
@@ -78,12 +101,16 @@ public class MainActivity extends AppCompatActivity {
             op = Operation.MULT;
 
         }
-
+*/
     }
+
+
+
+
 
     private boolean isGameOver()
     {
-        return questionNum >= 9;
+        return questionNum >= 30;
     }
     private int GetCorrectAnswer(){
         TextView txtNumber1 = (TextView)findViewById(R.id.txtNumber1);
@@ -112,37 +139,92 @@ public class MainActivity extends AppCompatActivity {
 
         return res;
     }
+
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
+
         final UserDbHelper userDb = new UserDbHelper(getApplicationContext());
         user = (UserContract) getIntent().getSerializableExtra("UserContract");
+        final TextView countDownTxt = (TextView) findViewById(R.id.countDownTxt);
+        final Button contBtn = findViewById(R.id.continueBtn);
+        final Button fab = (Button) findViewById(R.id.btnOK);
+        contBtn.setEnabled(false);
+
+        contBtn.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                String timeStamp = new SimpleDateFormat("HH:mm dd/MM/yyyy").format(Calendar.getInstance().getTime());
+
+                if (!userDb.addNewScore(user, score,timeStamp))
+                {
+
+                    Toast.makeText(getApplicationContext(),"Failed to save the score in DB",20).show();
+
+                }
+
+
+                Intent launchGameOver = new Intent(getApplication(), IndexScreen.class);
+               launchGameOver.putExtra("Score", score);
+                launchGameOver.putExtra("UserContract", user);
+                startActivity(launchGameOver);
+
+
+            }
+        });
+
+
+        new CountDownTimer(10000, 1000) {
+
+
+            public void onTick(long millisUntilFinished) {
+
+
+                countDownTxt.setText("Seconds remaining: " + millisUntilFinished / 1000);
+
+
+            }
+
+            public void onFinish() {
+                countDownTxt.setText("Time Out");
+                fab.setEnabled(false);
+                contBtn.setEnabled(true);
+
+            }
+        }.start();
+
+
+
+       // TextView qNumText = (TextView) findViewById(R.id.qNumTxt);
+        //qNumText.setText("Question " + questionNum + " of 15");
+        TextView txtScore = (TextView)findViewById(R.id.txtScore);
+        txtScore.setText(Integer.toString(score));
+
+      /*  user = (UserContract) getIntent().getSerializableExtra("UserContract");
+        if (savedInstanceState != null && user == null ){
+            user =  (UserContract) savedInstanceState.getSerializable("UserContract");
+        }*/
+
+
 
         SetOpertion();
         GenerateRandomQuestion();
 
-        Button fab = (Button) findViewById(R.id.btnOK);
+
 
         //database =  Room.databaseBuilder(this.getApplicationContext(), MyDatabase.class,DATABASE_NAME).build();
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                List<User> users = null;
-                try {
-                    //users = database.userDao().getAll();
-                }
-                catch(Exception ex)
-                {
-                    System.out.println(ex.getMessage());
-                }
-
-                //Intent launchChatScreen = new Intent(getApplication(),MainActivity.class);
-                //startActivity(launchChatScreen);
-
 
                 EditText txtAnswer = (EditText)findViewById(R.id.txtAnswer);
                 TextView txtStatus = (TextView) findViewById(R.id.txtStatus);
@@ -174,26 +256,33 @@ public class MainActivity extends AppCompatActivity {
                         TextView txtScore = (TextView)findViewById(R.id.txtScore);
                         txtScore.setText(Integer.toString(score));
                         txtAnswer.setText("");
-                        Toast.makeText(getApplicationContext(),"CORRECT! 5 points!",10).show();
+                        //TextView qNumText = (TextView) findViewById(R.id.qNumTxt);
+                        //qNumText.setText("Question " + questionNum + " of 15");
+                        Toast.makeText(getApplicationContext(),"CORRECT! +5 points!",10).show();
+
                     }
                     else {
                      txtStatus.setText("");
-                        questionNum = questionNum + 1;
+                        //questionNum = questionNum + 1;
 
                         score = score -2;
                         TextView txtScore = (TextView)findViewById(R.id.txtScore);
                         txtScore.setText(Integer.toString(score));
                         txtAnswer.setText("");
-                        Toast.makeText(getApplicationContext(),"Wrong, i take 2 points from you",10).show();
+                        Toast.makeText(getApplicationContext(),"Wrong, -2 points!",10).show();
                     }
-                    if(isGameOver()){
+                   /* if(isGameOver()){
 
                         //List<ScoreContract> scores = userDb.getAllScores();
-                        userDb.addNewScore(user,score);
+                        //userDb.addNewScore(user,score);
                         Intent launchGameOver = new Intent(getApplication(),GameOver.class);
+
+                        launchGameOver.putExtra("Score", score);
+                        String timeStamp = new SimpleDateFormat("HH:mm dd/MM/yyyy").format(Calendar.getInstance().getTime());
+                        userDb.addNewScore(user, score, timeStamp);
                         startActivity(launchGameOver);
 
-                    }
+                    }*/
                     SetOpertion();
                     GenerateRandomQuestion();
                 }
@@ -203,6 +292,31 @@ public class MainActivity extends AppCompatActivity {
 
 
             }
+
+
+
+
+
         });
+
+
+
+
     }
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
+        outState.putSerializable("UserContract", user);
+        super.onSaveInstanceState(outState);
+
+    }
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        savedInstanceState.getSerializable("UserContract");
+
+
+    }
+
 }
